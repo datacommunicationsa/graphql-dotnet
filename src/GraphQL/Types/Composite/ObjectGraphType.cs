@@ -27,7 +27,7 @@ namespace GraphQL.Types
         {
             if (!_resolvedInterfaces.Contains(graphType))
             {
-                graphType.IsValidInterfaceFor(this, throwError: true);
+                _ = graphType.IsValidInterfaceFor(this, throwError: true);
                 _resolvedInterfaces.Add(graphType ?? throw new ArgumentNullException(nameof(graphType)));
             }
         }
@@ -84,6 +84,19 @@ namespace GraphQL.Types
             if (!_interfaces.Contains(type))
                 _interfaces.Add(type);
         }
+
+        // TODO: kapiris additions - need PR!
+        /*
+        public override string CollectTypes(TypeCollectionContext context)
+        {
+            var type = GetType();
+            var innerType = type.IsGenericType ? type.GenericTypeArguments[0] : null;
+            return innerType?.IsGraphType() == false
+                && innerType.IsClass
+                ? GetType().GetFriendlyName()
+                : base.CollectTypes(context);
+        }
+        */
     }
 
     public class ObjectGraphType : ObjectGraphType<object>

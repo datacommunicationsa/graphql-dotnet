@@ -102,14 +102,9 @@ namespace GraphQL.Types
 
                 foreach (var arg in directive.Arguments)
                 {
-                    if (arg.ResolvedType != null)
-                    {
-                        arg.ResolvedType = lookup.ConvertTypeReference(directive, arg.ResolvedType);
-                    }
-                    else
-                    {
-                        arg.ResolvedType = lookup.BuildNamedType(arg.Type, ctx.ResolveType);
-                    }
+                    arg.ResolvedType = arg.ResolvedType != null
+                        ? lookup.ConvertTypeReference(directive, arg.ResolvedType)
+                        : lookup.BuildNamedType(arg.Type, ctx.ResolveType);
                 }
             }
 
@@ -154,7 +149,7 @@ namespace GraphQL.Types
                 }
 
                 IGraphType type;
-                var name = typeName.TrimGraphQLTypes();
+                string name = typeName.TrimGraphQLTypes();
                 lock (_lock)
                 {
                     _types.TryGetValue(name, out type);
@@ -193,7 +188,7 @@ namespace GraphQL.Types
                 type => BuildNamedType(type, t => (IGraphType)Activator.CreateInstance(t)),
                 (name, type, ctx) =>
                 {
-                    var trimmed = name.TrimGraphQLTypes();
+                    string trimmed = name.TrimGraphQLTypes();
                     lock (_lock)
                     {
                         SetGraphType(trimmed, type);
@@ -206,10 +201,7 @@ namespace GraphQL.Types
             Debug.Assert(context.InFlightRegisteredTypes.Count == 0);
         }
 
-        private IGraphType BuildNamedType(Type type, Func<Type, IGraphType> resolver)
-        {
-            return type.BuildNamedType(t => this[t] ?? resolver(t));
-        }
+        private IGraphType BuildNamedType(Type type, Func<Type, IGraphType> resolver) => type.BuildNamedType(t => this[t] ?? resolver(t));
 
         public void AddType<TType>(TypeCollectionContext context)
             where TType : IGraphType
@@ -235,7 +227,7 @@ namespace GraphQL.Types
                 throw new ExecutionError("Only add root types.");
             }
 
-            var name = type.CollectTypes(context).TrimGraphQLTypes();
+            string name = type.CollectTypes(context).TrimGraphQLTypes();
             lock (_lock)
             {
                 SetGraphType(name, type);
@@ -282,7 +274,8 @@ namespace GraphQL.Types
                 foreach (var unionedType in union.PossibleTypes)
                 {
                     // skip references
-                    if (unionedType is GraphQLTypeReference) continue;
+                    if (unionedType is GraphQLTypeReference)
+                        continue;
 
                     AddTypeIfNotRegistered(unionedType, context);
 
@@ -369,9 +362,11 @@ namespace GraphQL.Types
         private void AddTypeWithLoopCheck(IGraphType resolvedType, TypeCollectionContext context, Type namedType)
         {
             if (context.InFlightRegisteredTypes.Any(t => t == namedType))
+            {
                 throw new InvalidOperationException($@"A loop has been detected while registering schema types.
 There was an attempt to re-register '{namedType.FullName}' with instance of '{resolvedType.GetType().FullName}'.
 Make sure that your ServiceProvider is configured correctly.");
+            }
 
             context.InFlightRegisteredTypes.Push(namedType);
             try
@@ -380,7 +375,7 @@ Make sure that your ServiceProvider is configured correctly.");
             }
             finally
             {
-                context.InFlightRegisteredTypes.Pop();
+                _ = context.InFlightRegisteredTypes.Pop();
             }
         }
 
@@ -411,6 +406,15 @@ Make sure that your ServiceProvider is configured correctly.");
         private void AddTypeIfNotRegistered(IGraphType type, TypeCollectionContext context)
         {
             var namedType = type.GetNamedType();
+
+            // TODO: kapiris additions - need PR!
+            /*
+            if (string.IsNullOrEmpty(namedType.Name))
+            {
+                namedType.Name = namedType.CollectTypes(context);
+            }
+            */
+
             var foundType = this[namedType.Name];
             if (foundType == null)
             {

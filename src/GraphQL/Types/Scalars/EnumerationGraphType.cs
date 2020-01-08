@@ -49,11 +49,13 @@ namespace GraphQL.Types
             var foundByName = Values.FindByName(valueString);
             if (foundByName != null)
             {
-                return foundByName.Name;
+				// TODO: kapiris additions - need PR!
+                return foundByName.Value;
             }
 
             var foundByValue = Values.FindByValue(value);
-            return foundByValue?.Name;
+			// TODO: kapiris additions - need PR!
+            return foundByValue?.Value;
         }
 
         public override object ParseValue(object value)
