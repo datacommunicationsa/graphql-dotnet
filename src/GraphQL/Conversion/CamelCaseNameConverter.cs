@@ -1,8 +1,7 @@
-using System;
-using GraphQL.Types;
-
 namespace GraphQL.Conversion
 {
+    using GraphQL.Types;
+
     /// <summary>
     /// Camel case name converter; set as the default <see cref="INameConverter"/> within <see cref="ExecutionOptions.NameConverter"/>.
     /// Always used by all introspection fields regardless of the selected <see cref="INameConverter"/>.
@@ -17,11 +16,11 @@ namespace GraphQL.Conversion
         /// <summary>
         /// Returns the field name converted to camelCase.
         /// </summary>
-        public string NameForField(string fieldName, IComplexGraphType parentGraphType) => fieldName.ToCamelCase();
+        public string NameForField( string fieldName, IComplexGraphType parentGraphType ) => fieldName.ToCamelCase();
 
         /// <summary>
         /// Returns the argument name converted to camelCase.
         /// </summary>
-        public string NameForArgument(string argumentName, IComplexGraphType parentGraphType, FieldType field) => argumentName.ToCamelCase();
+        public string NameForArgument( string argumentName, IComplexGraphType parentGraphType, FieldType field ) => argumentName.ToCamelCase();
     }
 }

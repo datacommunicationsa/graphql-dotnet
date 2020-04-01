@@ -1,24 +1,56 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <!--<TargetFramework>netstandard2.1</TargetFramework>-->
+    <PackageId>Datacomm.DCAF.GraphQL</PackageId>
+    <AssemblyName>GraphQL</AssemblyName>
+    <LangVersion>latest</LangVersion>
     <Description>GraphQL for .NET</Description>
     <Authors>Joe McBride</Authors>
-    <Copyright>Copyright 2015-2017 Joseph T. McBride et al. All rights reserved.</Copyright>
-    <TargetFramework>netstandard2.0</TargetFramework>
     <PackageTags>GraphQL;json;api</PackageTags>
+    <PackageProjectUrl>https://github.com/graphql-dotnet/graphql-dotnet</PackageProjectUrl>
+    <PackageIconUrl>https://raw.githubusercontent.com/graphql-dotnet/graphql-dotnet/master/assets/logo.64x64.png</PackageIconUrl>
+    <PackageLicenseUrl>https://github.com/graphql-dotnet/graphql-dotnet/blob/master/LICENSE.md</PackageLicenseUrl>
+    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
+    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
+    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
+    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+    <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
+  </PropertyGroup>
+
+  <!--<PropertyGroup>
+    -->
+  <!-- Optional: Publish the repository URL in the built .nupkg (in the NuSpec <Repository> element) -->
+  <!--
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    -->
+  <!-- Optional: Embed source files that are not tracked by the source control manager in the PDB -->
+  <!--
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    -->
+  <!-- Optional: Build symbol package (.snupkg) to distribute the PDB containing Source Link -->
+  <!--
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.AzureRepos.Git" Version="1.0.0" PrivateAssets="All" />
+  </ItemGroup>-->
+
+  <!--<ItemGroup>
     <None Include="..\..\assets\logo.64x64.png" Pack="true" PackagePath="\" />
-  </ItemGroup>
+  </ItemGroup>-->
 
   <ItemGroup>
     <PackageReference Include="GraphQL-Parser" Version="5.1.2" />
-    <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
-    <PackageReference Include="System.Buffers" Version="4.5.0" />
-    <PackageReference Include="System.ComponentModel.Annotations" Version="4.5.0" />
-    <PackageReference Include="System.Reactive.Core" Version="4.0.0" />
-    <PackageReference Include="System.Reactive.Linq" Version="4.0.0" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.6.0" />
+    <PackageReference Include="System.ComponentModel.Annotations" Version="4.7.0" />
+    <PackageReference Include="System.Reactive.Linq" Version="4.3.2" />
   </ItemGroup>
 
 </Project>

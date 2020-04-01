@@ -1,8 +1,7 @@
-using System;
-using GraphQL.Types;
-
 namespace GraphQL.Conversion
 {
+    using GraphQL.Types;
+
     /// <summary>
     /// A name converter which does not modify the names passed to it.
     /// </summary>
@@ -16,11 +15,11 @@ namespace GraphQL.Conversion
         /// <summary>
         /// Returns the field name without modification
         /// </summary>
-        public string NameForField(string fieldName, IComplexGraphType parentGraphType) => fieldName;
+        public string NameForField( string fieldName, IComplexGraphType parentGraphType ) => fieldName;
 
         /// <summary>
         /// Returns the argument name without modification
         /// </summary>
-        public string NameForArgument(string argumentName, IComplexGraphType parentGraphType, FieldType field) => argumentName;
+        public string NameForArgument( string argumentName, IComplexGraphType parentGraphType, FieldType field ) => argumentName;
     }
 }

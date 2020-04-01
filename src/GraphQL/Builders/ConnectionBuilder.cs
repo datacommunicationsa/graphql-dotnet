@@ -1,36 +1,30 @@
-using System;
-using System.Threading.Tasks;
-using GraphQL.Types;
-using GraphQL.Types.Relay;
-using GraphQL.Utilities;
-
 namespace GraphQL.Builders
 {
+    using System;
+    using System.Threading.Tasks;
+
+    using GraphQL.Types;
+    using GraphQL.Types.Relay;
+    using GraphQL.Utilities;
+
     public static class ConnectionBuilder
     {
         public static ConnectionBuilder<TSourceType> Create<TNodeType, TSourceType>()
-            where TNodeType : IGraphType
-        {
-            return ConnectionBuilder<TSourceType>.Create<TNodeType>();
-        }
+            where TNodeType : IGraphType => ConnectionBuilder<TSourceType>.Create<TNodeType>();
 
         public static ConnectionBuilder<TSourceType> Create<TNodeType, TEdgeType, TSourceType>()
             where TNodeType : IGraphType
-            where TEdgeType : EdgeType<TNodeType>
-        {
-            return ConnectionBuilder<TSourceType>.Create<TNodeType, TEdgeType>();
-        }
+            where TEdgeType : EdgeType<TNodeType> => ConnectionBuilder<TSourceType>.Create<TNodeType, TEdgeType>();
 
         public static ConnectionBuilder<TSourceType> Create<TNodeType, TEdgeType, TConnectionType, TSourceType>()
             where TNodeType : IGraphType
             where TEdgeType : EdgeType<TNodeType>
-            where TConnectionType : ConnectionType<TNodeType, TEdgeType>
-        {
-            return ConnectionBuilder<TSourceType>.Create<TNodeType, TEdgeType, TConnectionType>();
-        }
+            where TConnectionType : ConnectionType<TNodeType, TEdgeType> => ConnectionBuilder<TSourceType>.Create<TNodeType, TEdgeType, TConnectionType>();
     }
 
+#pragma warning disable RCS1225 // Make class sealed.
     public class ConnectionBuilder<TSourceType>
+#pragma warning restore RCS1225 // Make class sealed.
     {
         private bool _isUnidirectional;
 
@@ -44,7 +38,7 @@ namespace GraphQL.Builders
             FieldType fieldType,
             bool isUnidirectional,
             bool isBidirectional,
-            int? pageSize)
+            int? pageSize )
         {
             _isUnidirectional = isUnidirectional;
             _isBidirectional = isBidirectional;
@@ -52,20 +46,14 @@ namespace GraphQL.Builders
             FieldType = fieldType;
         }
 
-        public static ConnectionBuilder<TSourceType> Create<TNodeType>(string name = "default")
-            where TNodeType : IGraphType
-        {
-            return Create<TNodeType, EdgeType<TNodeType>>(name);
-        }
+        public static ConnectionBuilder<TSourceType> Create<TNodeType>( string name = "default" )
+            where TNodeType : IGraphType => Create<TNodeType, EdgeType<TNodeType>>( name );
 
-        public static ConnectionBuilder<TSourceType> Create<TNodeType, TEdgeType>(string name = "default")
+        public static ConnectionBuilder<TSourceType> Create<TNodeType, TEdgeType>( string name = "default" )
             where TNodeType : IGraphType
-            where TEdgeType : EdgeType<TNodeType>
-        {
-            return Create<TNodeType, TEdgeType, ConnectionType<TNodeType, TEdgeType>>(name);
-        }
+            where TEdgeType : EdgeType<TNodeType> => Create<TNodeType, TEdgeType, ConnectionType<TNodeType, TEdgeType>>( name );
 
-        public static ConnectionBuilder<TSourceType> Create<TNodeType, TEdgeType, TConnectionType>(string name = "default")
+        public static ConnectionBuilder<TSourceType> Create<TNodeType, TEdgeType, TConnectionType>( string name = "default" )
             where TNodeType : IGraphType
             where TEdgeType : EdgeType<TNodeType>
             where TConnectionType : ConnectionType<TNodeType, TEdgeType>
@@ -73,24 +61,24 @@ namespace GraphQL.Builders
             var fieldType = new FieldType
             {
                 Name = name,
-                Type = typeof(TConnectionType),
+                Type = typeof( TConnectionType ),
                 Arguments = new QueryArguments(),
             };
-            return new ConnectionBuilder<TSourceType>(fieldType, false, false, null)
+            return new ConnectionBuilder<TSourceType>( fieldType, false, false, null )
                 .Unidirectional();
         }
 
         public ConnectionBuilder<TSourceType> Unidirectional()
         {
-            if (_isUnidirectional)
+            if ( _isUnidirectional )
             {
                 return this;
             }
 
-            Argument<StringGraphType, string>("after",
-                "Only look at connected edges with cursors greater than the value of `after`.");
-            Argument<IntGraphType, int?>("first",
-                "Specifies the number of edges to return starting from `after` or the first entry if `after` is not specified.");
+            _ = Argument<StringGraphType, string>( "after",
+                "Only look at connected edges with cursors greater than the value of `after`." );
+            _ = Argument<IntGraphType, int?>( "first",
+                "Specifies the number of edges to return starting from `after` or the first entry if `after` is not specified." );
 
             _isUnidirectional = true;
             _isBidirectional = false;
@@ -100,15 +88,15 @@ namespace GraphQL.Builders
 
         public ConnectionBuilder<TSourceType> Bidirectional()
         {
-            if (_isBidirectional)
+            if ( _isBidirectional )
             {
                 return this;
             }
 
-            Argument<StringGraphType, string>("before",
-                "Only look at connected edges with cursors smaller than the value of `before`.");
-            Argument<IntGraphType, int?>("last",
-                "Specifies the number of edges to return counting reversely from `before`, or the last entry if `before` is not specified.");
+            _ = Argument<StringGraphType, string>( "before",
+                "Only look at connected edges with cursors smaller than the value of `before`." );
+            _ = Argument<IntGraphType, int?>( "last",
+                "Specifies the number of edges to return counting reversely from `before`, or the last entry if `before` is not specified." );
 
             _isUnidirectional = false;
             _isBidirectional = true;
@@ -116,27 +104,27 @@ namespace GraphQL.Builders
             return this;
         }
 
-        public ConnectionBuilder<TSourceType> Name(string name)
+        public ConnectionBuilder<TSourceType> Name( string name )
         {
-            NameValidator.ValidateName(name);
+            NameValidator.ValidateName( name );
 
             FieldType.Name = name;
             return this;
         }
 
-        public ConnectionBuilder<TSourceType> Description(string description)
+        public ConnectionBuilder<TSourceType> Description( string description )
         {
             FieldType.Description = description;
             return this;
         }
 
-        public ConnectionBuilder<TSourceType> DeprecationReason(string deprecationReason)
+        public ConnectionBuilder<TSourceType> DeprecationReason( string deprecationReason )
         {
             FieldType.DeprecationReason = deprecationReason;
             return this;
         }
 
-        public ConnectionBuilder<TSourceType> PageSize(int pageSize)
+        public ConnectionBuilder<TSourceType> PageSize( int pageSize )
         {
             _pageSize = pageSize;
             return this;
@@ -148,63 +136,65 @@ namespace GraphQL.Builders
             return this;
         }
 
-        public ConnectionBuilder<TSourceType> Argument<TArgumentGraphType>(string name, string description)
+        public ConnectionBuilder<TSourceType> Argument<TArgumentGraphType>( string name, string description )
             where TArgumentGraphType : IGraphType
         {
-            FieldType.Arguments.Add(new QueryArgument(typeof(TArgumentGraphType))
+            FieldType.Arguments.Add( new QueryArgument( typeof( TArgumentGraphType ) )
             {
                 Name = name,
                 Description = description,
-            });
+            } );
             return this;
         }
 
-        public ConnectionBuilder<TSourceType> Argument<TArgumentGraphType, TArgumentType>(string name, string description,
-            TArgumentType defaultValue = default)
+        public ConnectionBuilder<TSourceType> Argument<TArgumentGraphType, TArgumentType>( string name, string description,
+            TArgumentType defaultValue = default )
             where TArgumentGraphType : IGraphType
         {
-            FieldType.Arguments.Add(new QueryArgument(typeof(TArgumentGraphType))
+            FieldType.Arguments.Add( new QueryArgument( typeof( TArgumentGraphType ) )
             {
                 Name = name,
                 Description = description,
                 DefaultValue = defaultValue,
-            });
+            } );
             return this;
         }
 
-        public void Resolve(Func<IResolveConnectionContext<TSourceType>, object> resolver)
+        public void Resolve( Func<IResolveConnectionContext<TSourceType>, object> resolver )
         {
-            FieldType.Resolver = new Resolvers.FuncFieldResolver<object>(context =>
-            {
-                var args = new ResolveConnectionContext<TSourceType>(context, _isUnidirectional, _pageSize);
-                CheckForErrors(args);
-                return resolver(args);
-            });
+            FieldType.Resolver = new Resolvers.FuncFieldResolver<object>( context =>
+             {
+                 var args = new ResolveConnectionContext<TSourceType>( context, _isUnidirectional, _pageSize );
+                 CheckForErrors( args );
+                 return resolver( args );
+             } );
         }
 
-        public void ResolveAsync(Func<IResolveConnectionContext<TSourceType>, Task<object>> resolver)
+#pragma warning disable RCS1047 // Non-asynchronous method name should not end with 'Async'.
+        public void ResolveAsync( Func<IResolveConnectionContext<TSourceType>, Task<object>> resolver )
+#pragma warning restore RCS1047 // Non-asynchronous method name should not end with 'Async'.
         {
-            FieldType.Resolver = new Resolvers.AsyncFieldResolver<object>(context =>
-            {
-                var args = new ResolveConnectionContext<TSourceType>(context, _isUnidirectional, _pageSize);
-                CheckForErrors(args);
-                return resolver(args);
-            });
+            FieldType.Resolver = new Resolvers.AsyncFieldResolver<object>( context =>
+             {
+                 var args = new ResolveConnectionContext<TSourceType>( context, _isUnidirectional, _pageSize );
+                 CheckForErrors( args );
+                 return resolver( args );
+             } );
         }
 
-        private void CheckForErrors(IResolveConnectionContext<TSourceType> args)
+        private void CheckForErrors( IResolveConnectionContext<TSourceType> args )
         {
-            if (args.First.HasValue && args.Last.HasValue)
+            if ( args.First.HasValue && args.Last.HasValue )
             {
-                throw new ArgumentException("Cannot specify both `first` and `last`.");
+                throw new ArgumentException( "Cannot specify both `first` and `last`." );
             }
-            if (args.IsUnidirectional && args.Last.HasValue)
+            if ( args.IsUnidirectional && args.Last.HasValue )
             {
-                throw new ArgumentException("Cannot use `last` with unidirectional connections.");
+                throw new ArgumentException( "Cannot use `last` with unidirectional connections." );
             }
-            if (args.IsPartial && args.NumberOfSkippedEntries.HasValue)
+            if ( args.IsPartial && args.NumberOfSkippedEntries.HasValue )
             {
-                throw new ArgumentException("Cannot specify `numberOfSkippedEntries` with partial connection resolvers.");
+                throw new ArgumentException( "Cannot specify `numberOfSkippedEntries` with partial connection resolvers." );
             }
         }
     }

@@ -1,14 +1,15 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Reflection;
-using GraphQL.Types;
-using GraphQL.Utilities;
-
 namespace GraphQL
 {
+    using System;
+    using System.Collections;
+    using System.Collections.Generic;
+    using System.ComponentModel;
+    using System.Linq;
+    using System.Reflection;
+
+    using GraphQL.Types;
+    using GraphQL.Utilities;
+
     public static class TypeExtensions
     {
         /// <summary>
@@ -17,11 +18,8 @@ namespace GraphQL
         /// <typeparam name="T">The desired type</typeparam>
         /// <param name="item">The item.</param>
         /// <returns><c>null</c> if the cast failed, otherwise item as T</returns>
-        public static T As<T>(this object item)
-            where T : class
-        {
-            return item as T;
-        }
+        public static T As<T>( this object item )
+            where T : class => item as T;
 
         /// <summary>
         /// Determines whether this instance is a concrete type.
@@ -30,12 +28,7 @@ namespace GraphQL
         /// <returns>
         ///   <c>true</c> if the specified type is neither abstract nor an interface; otherwise, <c>false</c>.
         /// </returns>
-        public static bool IsConcrete(this Type type)
-        {
-            if (type == null) return false;
-
-            return !type.IsAbstract && !type.IsInterface;
-        }
+        public static bool IsConcrete( this Type type ) => type?.IsAbstract == false && !type.IsInterface;
 
         /// <summary>
         /// Determines whether this instance is a subclass of Nullable&lt;T&gt;.
@@ -44,17 +37,14 @@ namespace GraphQL
         /// <returns>
         ///   <c>true</c> if the specified type is a subclass of Nullable&lt;T&gt;; otherwise, <c>false</c>.
         /// </returns>
-        public static bool IsNullable(this Type type)
-        {
-            return type == typeof(string) || (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>));
-        }
+        public static bool IsNullable( this Type type ) => type == typeof( string ) || (type.IsGenericType && type.GetGenericTypeDefinition() == typeof( Nullable<> ));
 
-        public static bool IsPrimitive(this Type type)
+        public static bool IsPrimitive( this Type type )
         {
             return type.IsPrimitive
-                || type == typeof(string)
-                || type == typeof(DateTime)
-                || type == typeof(DateTimeOffset);
+                || type == typeof( string )
+                || type == typeof( DateTime )
+                || type == typeof( DateTimeOffset );
         }
 
         /// <summary>
@@ -64,36 +54,33 @@ namespace GraphQL
         /// <returns>
         ///   <c>true</c> if the indicated type implements IGraphType; otherwise, <c>false</c>.
         /// </returns>
-        public static bool IsGraphType(this Type type)
-        {
-            return type.GetInterfaces().Contains(typeof(IGraphType));
-        }
+        public static bool IsGraphType( this Type type ) => type.GetInterfaces().Contains( typeof( IGraphType ) );
 
         /// <summary>
         /// Gets the GraphQL name of the type. This is derived from the type name and can be overridden by the GraphQLMetadata Attribute.
         /// </summary>
         /// <param name="type">The indicated type.</param>
         /// <returns>A string containing a GraphQL compatible type name.</returns>
-        public static string GraphQLName(this Type type)
+        public static string GraphQLName( this Type type )
         {
             var attr = type.GetCustomAttribute<GraphQLMetadataAttribute>();
 
-            if (!string.IsNullOrEmpty(attr?.Name))
+            if ( !string.IsNullOrEmpty( attr?.Name ) )
             {
                 return attr.Name;
             }
 
-            var typeName = type.Name;
+            string typeName = type.Name;
 
-            if (type.IsGenericType)
+            if ( type.IsGenericType )
             {
-                typeName = typeName.Substring(0, typeName.IndexOf('`'));
+                typeName = typeName.Substring( 0, typeName.IndexOf( '`' ) );
             }
 
-            typeName = typeName.Replace(nameof(GraphType), nameof(Type));
+            typeName = typeName.Replace( nameof( GraphType ), nameof( Type ) );
 
-            return typeName.EndsWith(nameof(Type), StringComparison.InvariantCulture)
-                ? typeName.Remove(typeName.Length - nameof(Type).Length)
+            return typeName.EndsWith( nameof( Type ), StringComparison.InvariantCulture )
+                ? typeName.Remove( typeName.Length - nameof( Type ).Length )
                 : typeName;
         }
 
@@ -105,50 +92,52 @@ namespace GraphQL
         /// <returns>A Type object representing a GraphType that matches the indicated type.</returns>
         /// <remarks>This can handle arrays, lists and other collections implementing IEnumerable.</remarks>
         /// <example><see>IList<string></see> -> <see>ListGraphType<StringGraphType></see></example>
-        public static Type GetGraphTypeFromType(this Type type, bool isNullable = false)
+        public static Type GetGraphTypeFromType( this Type type, bool isNullable = false )
         {
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            if ( type.IsGenericType && type.GetGenericTypeDefinition() == typeof( Nullable<> ) )
             {
                 type = type.GetGenericArguments()[0];
-                if (isNullable == false)
+                if ( !isNullable )
                 {
-                    throw new ArgumentOutOfRangeException(nameof(isNullable),
-                        $"Explicitly nullable type: Nullable<{type.Name}> cannot be coerced to a non nullable GraphQL type. \n");
+                    throw new ArgumentOutOfRangeException( nameof( isNullable ),
+                        $"Explicitly nullable type: Nullable<{type.Name}> cannot be coerced to a non nullable GraphQL type. \n" );
                 }
             }
 
             Type graphType;
 
-            if (type.IsArray)
+            if ( type.IsArray )
             {
                 var clrElementType = type.GetElementType();
-                var elementType = GetGraphTypeFromType(clrElementType, clrElementType.IsNullable()); // isNullable from elementType, not from parent array
-                graphType = typeof(ListGraphType<>).MakeGenericType(elementType);
+                var elementType = GetGraphTypeFromType( clrElementType, clrElementType.IsNullable() ); // isNullable from elementType, not from parent array
+                graphType = typeof( ListGraphType<> ).MakeGenericType( elementType );
             }
-            else if (IsAnIEnumerable(type))
+            else if ( IsAnIEnumerable( type ) )
             {
-                var clrElementType = GetEnumerableElementType(type);
-                var elementType = GetGraphTypeFromType(clrElementType, clrElementType.IsNullable()); // isNullable from elementType, not from parent container
-                graphType = typeof(ListGraphType<>).MakeGenericType(elementType);
+                var clrElementType = GetEnumerableElementType( type );
+                var elementType = GetGraphTypeFromType( clrElementType, clrElementType.IsNullable() ); // isNullable from elementType, not from parent container
+                graphType = typeof( ListGraphType<> ).MakeGenericType( elementType );
             }
             else
             {
-                graphType = GraphTypeTypeRegistry.Get(type);
+                graphType = GraphTypeTypeRegistry.Get( type );
             }
 
-            if (graphType == null)
+            if ( graphType == null )
             {
-                if (type.IsEnum)
+                if ( type.IsEnum )
                 {
-                    graphType = typeof(EnumerationGraphType<>).MakeGenericType(type);
+                    graphType = typeof( EnumerationGraphType<> ).MakeGenericType( type );
                 }
                 else
-                    throw new ArgumentOutOfRangeException(nameof(type), $"The type: {type.Name} cannot be coerced effectively to a GraphQL type");
+                {
+                    throw new ArgumentOutOfRangeException( nameof( type ), $"The type: {type.Name} cannot be coerced effectively to a GraphQL type" );
+                }
             }
 
-            if (!isNullable)
+            if ( !isNullable )
             {
-                graphType = typeof(NonNullGraphType<>).MakeGenericType(graphType);
+                graphType = typeof( NonNullGraphType<> ).MakeGenericType( graphType );
             }
 
             return graphType;
@@ -159,24 +148,24 @@ namespace GraphQL
         /// </summary>
         /// <param name="type">The type of which you are inquiring.</param>
         /// <returns>A string representing the friendly name.</returns>
-        internal static string GetFriendlyName(this Type type)
+        internal static string GetFriendlyName( this Type type )
         {
             string friendlyName = type.Name;
 
             var genericArgs = type.GetGenericArguments();
 
-            if (genericArgs.Length > 0)
+            if ( genericArgs.Length > 0 )
             {
-                int iBacktick = friendlyName.IndexOf('`');
-                if (iBacktick > 0)
+                int iBacktick = friendlyName.IndexOf( '`' );
+                if ( iBacktick > 0 )
                 {
-                    friendlyName = friendlyName.Remove(iBacktick);
+                    friendlyName = friendlyName.Remove( iBacktick );
                 }
                 friendlyName += "<";
-                Type[] typeParameters = genericArgs;
-                for (int i = 0; i < typeParameters.Length; ++i)
+                var typeParameters = genericArgs;
+                for ( int i = 0; i < typeParameters.Length; ++i )
                 {
-                    string typeParamName = GetFriendlyName(typeParameters[i]);
+                    string typeParamName = GetFriendlyName( typeParameters[i] );
                     friendlyName += i == 0 ? typeParamName : "," + typeParamName;
                 }
                 friendlyName += ">";
@@ -185,28 +174,29 @@ namespace GraphQL
             return friendlyName;
         }
 
-        private static bool IsAnIEnumerable(Type type) =>
-            type != typeof(string) && typeof(IEnumerable).IsAssignableFrom(type) && !type.IsArray;
+        private static bool IsAnIEnumerable( Type type ) =>
+            type != typeof( string ) && typeof( IEnumerable ).IsAssignableFrom( type ) && !type.IsArray;
 
-        public static Type GetEnumerableElementType(this Type type)
+        public static Type GetEnumerableElementType( this Type type )
         {
-            if (_untypedContainers.Contains(type)) return typeof(object);
+            if ( _untypedContainers.Contains( type ) )
+                return typeof( object );
 
-            if (type.IsConstructedGenericType)
+            if ( type.IsConstructedGenericType )
             {
                 var definition = type.GetGenericTypeDefinition();
-                if (_typedContainers.Contains(definition))
+                if ( _typedContainers.Contains( definition ) )
                 {
                     return type.GenericTypeArguments[0];
                 }
             }
 
-            throw new ArgumentOutOfRangeException(nameof(type), $"The element type for {type.Name} cannot be coerced effectively");
+            throw new ArgumentOutOfRangeException( nameof( type ), $"The element type for {type.Name} cannot be coerced effectively" );
         }
 
-        private static readonly Type[] _untypedContainers = { typeof(IEnumerable), typeof(IList), typeof(ICollection) };
+        private static readonly Type[] _untypedContainers = { typeof( IEnumerable ), typeof( IList ), typeof( ICollection ) };
 
-        private static readonly Type[] _typedContainers = { typeof(IEnumerable<>), typeof(List<>), typeof(IList<>), typeof(ICollection<>), typeof(IReadOnlyCollection<>) };
+        private static readonly Type[] _typedContainers = { typeof( IEnumerable<> ), typeof( List<> ), typeof( IList<> ), typeof( ICollection<> ), typeof( IReadOnlyCollection<> ) };
 
         /// <summary>
         /// Returns whether or not the given <paramref name="type"/> implements <paramref name="genericType"/>
@@ -217,28 +207,28 @@ namespace GraphQL
         /// <returns>
         ///   <c>true</c> if the indicated type implements <paramref name="genericType"/>; otherwise, <c>false</c>.
         /// </returns>
-        public static bool ImplementsGenericType(this Type type, Type genericType)
+        public static bool ImplementsGenericType( this Type type, Type genericType )
         {
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == genericType)
+            if ( type.IsGenericType && type.GetGenericTypeDefinition() == genericType )
             {
                 return true;
             }
 
             var interfaceTypes = type.GetInterfaces();
-            foreach (var it in interfaceTypes)
+            foreach ( var it in interfaceTypes )
             {
-                if (it.IsGenericType && it.GetGenericTypeDefinition() == genericType)
+                if ( it.IsGenericType && it.GetGenericTypeDefinition() == genericType )
                 {
                     return true;
                 }
             }
 
             var baseType = type.BaseType;
-            return baseType == null ? false : ImplementsGenericType(baseType, genericType);
+            return baseType == null ? false : ImplementsGenericType( baseType, genericType );
         }
 
-        public static string Description(this MemberInfo memberInfo) => (memberInfo.GetCustomAttributes(typeof(DescriptionAttribute), false).FirstOrDefault() as DescriptionAttribute)?.Description ?? memberInfo.GetXmlDocumentation();
+        public static string Description( this MemberInfo memberInfo ) => (memberInfo.GetCustomAttributes( typeof( DescriptionAttribute ), false ).FirstOrDefault() as DescriptionAttribute)?.Description ?? memberInfo.GetXmlDocumentation();
 
-        public static string ObsoleteMessage(this MemberInfo memberInfo) => (memberInfo.GetCustomAttributes(typeof(ObsoleteAttribute), false).FirstOrDefault() as ObsoleteAttribute)?.Message;
+        public static string ObsoleteMessage( this MemberInfo memberInfo ) => (memberInfo.GetCustomAttributes( typeof( ObsoleteAttribute ), false ).FirstOrDefault() as ObsoleteAttribute)?.Message;
     }
 }

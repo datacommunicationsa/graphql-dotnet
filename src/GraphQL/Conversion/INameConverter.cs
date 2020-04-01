@@ -1,8 +1,7 @@
-using System;
-using GraphQL.Types;
-
 namespace GraphQL.Conversion
 {
+    using GraphQL.Types;
+
     /// <summary>
     /// Sanitizes graph field and argument names to a particular case convention, such as camelСase or PascalCase.<br/>
     /// <br/>
@@ -16,11 +15,11 @@ namespace GraphQL.Conversion
         /// <summary>
         /// Sanitizes a field name for a specified parent graph type; returns the updated field name
         /// </summary>
-        string NameForField(string fieldName, IComplexGraphType parentGraphType);
+        string NameForField( string fieldName, IComplexGraphType parentGraphType );
 
         /// <summary>
         /// Sanitizes an argument name for a specified parent graph type and field definition; returns the updated field name
         /// </summary>
-        string NameForArgument(string argumentName, IComplexGraphType parentGraphType, FieldType field);
+        string NameForArgument( string argumentName, IComplexGraphType parentGraphType, FieldType field );
     }
 }

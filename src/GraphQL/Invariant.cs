@@ -5,16 +5,16 @@ namespace GraphQL
         /// <summary>
         /// Throws an <see cref="ExecutionError"/> if <c>valid</c> is false or <c>message</c> is empty.
         /// </summary>
-        public static void Check(bool valid, string message)
+        public static void Check( bool valid, string message )
         {
-            if (string.IsNullOrWhiteSpace(message))
+            if ( string.IsNullOrWhiteSpace( message ) )
             {
-                throw new ExecutionError("Invariant requires an error message.");
+                throw new ExecutionError( "Invariant requires an error message." );
             }
 
-            if (!valid)
+            if ( !valid )
             {
-                throw new ExecutionError(message);
+                throw new ExecutionError( message );
             }
         }
     }

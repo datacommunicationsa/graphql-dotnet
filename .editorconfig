@@ -35,7 +35,6 @@ insert_final_newline = false
 
 # Code files
 [*.{cs,vb}]
- 
 # .NET code style settings - "This." and "Me." qualifiers
 # https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-language-conventions?view=vs-2019#this-and-me
 dotnet_style_qualification_for_field = false:warning
@@ -56,9 +55,9 @@ dotnet_style_readonly_field = true:warning
 
 # .NET code style settings - Parentheses preferences
 # https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-language-conventions?view=vs-2019#parentheses-preferences
-dotnet_style_parentheses_in_arithmetic_binary_operators = never_if_unnecessary:suggestion
-dotnet_style_parentheses_in_relational_binary_operators = never_if_unnecessary:suggestion
-dotnet_style_parentheses_in_other_binary_operators = never_if_unnecessary:suggestion
+dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:suggestion
+dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:suggestion
+dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:suggestion
 dotnet_style_parentheses_in_other_operators = never_if_unnecessary:suggestion
 
 # .NET code style settings - Expression-level preferences
@@ -136,15 +135,15 @@ csharp_style_prefer_range_operator = true:warning
 # https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-language-conventions?view=vs-2019#miscellaneous-preferences
 csharp_style_deconstructed_variable_declaration = true:suggestion
 csharp_style_pattern_local_over_anonymous_function = true:suggestion
-csharp_using_directive_placement = outside_namespace:warning
+csharp_using_directive_placement = inside_namespace:warning
 csharp_prefer_static_local_function = true:suggestion
-csharp_prefer_simple_using_statement = false:suggestion
+csharp_prefer_simple_using_statement = true:suggestion
 csharp_style_prefer_switch_expression = true:suggestion
 
 # .NET formatting settings - Organize using directives
 # https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-formatting-conventions?view=vs-2019#organize-using-directives
 dotnet_sort_system_directives_first = true
-dotnet_separate_import_directive_groups = false
+dotnet_separate_import_directive_groups = true
 
 # C# formatting settings - New-line options
 # https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-formatting-conventions?view=vs-2019#new-line-options
@@ -166,16 +165,16 @@ csharp_indent_braces = false
 csharp_indent_case_contents_when_block = false
 
 # C# formatting settings - Spacing options
-csharp_space_after_cast = false
+csharp_space_after_cast = true
 csharp_space_after_keywords_in_control_flow_statements = true
-csharp_space_between_parentheses = false
+csharp_space_between_parentheses = control_flow_statements, type_casts
 csharp_space_before_colon_in_inheritance_clause = true
 csharp_space_after_colon_in_inheritance_clause = true
 csharp_space_around_binary_operators = before_and_after
-csharp_space_between_method_declaration_parameter_list_parentheses = false
+csharp_space_between_method_declaration_parameter_list_parentheses = true
 csharp_space_between_method_declaration_empty_parameter_list_parentheses = false
 csharp_space_between_method_declaration_name_and_open_parenthesis = false
-csharp_space_between_method_call_parameter_list_parentheses = false
+csharp_space_between_method_call_parameter_list_parentheses = true
 csharp_space_between_method_call_empty_parameter_list_parentheses = false
 csharp_space_between_method_call_name_and_opening_parenthesis = false
 csharp_space_after_comma = true
@@ -198,18 +197,18 @@ csharp_preserve_single_line_statements = false
 # https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-naming-conventions?view=vs-2019
 # dotnet_naming_rule.<namingRuleTitle>.symbols = <symbolTitle>
 dotnet_naming_rule.private_fields_with_underscore.symbols = private_fields
- 
+
 # dotnet_naming_symbols.<symbolTitle>.<property> = <value>
 dotnet_naming_symbols.private_fields.applicable_kinds = field
 dotnet_naming_symbols.private_fields.applicable_accessibilities = private
- 
+
 # dotnet_naming_rule.<namingRuleTitle>.style = <styleTitle>
 dotnet_naming_rule.private_fields_with_underscore.style = prefix_underscore
- 
+
 # dotnet_naming_style.<styleTitle>.<property> = <value>
 dotnet_naming_style.prefix_underscore.capitalization = camel_case
 dotnet_naming_style.prefix_underscore.required_prefix = _
- 
+
 # dotnet_naming_rule.<namingRuleTitle>.severity = <value>
 dotnet_naming_rule.private_fields_with_underscore.severity = warning
 
@@ -248,9 +247,18 @@ dotnet_naming_rule.async_methods_end_in_async.style = end_in_async_style
 
 # dotnet_naming_style.<styleTitle>.<property> = <value>
 dotnet_naming_style.end_in_async_style.capitalization = pascal_case
-dotnet_naming_style.end_in_async_style.word_separator = 
-dotnet_naming_style.end_in_async_style.required_prefix = 
+dotnet_naming_style.end_in_async_style.word_separator =
+dotnet_naming_style.end_in_async_style.required_prefix =
 dotnet_naming_style.end_in_async_style.required_suffix = Async
 
 # dotnet_naming_rule.<namingRuleTitle>.severity = <value>
 dotnet_naming_rule.async_methods_end_in_async.severity = warning
+
+
+dotnet_naming_symbols.public_symbols.applicable_kinds = property,method,field,event,delegate
+dotnet_naming_symbols.public_symbols.applicable_accessibilities = public
+dotnet_naming_symbols.public_symbols.required_modifiers = readonly
+dotnet_naming_rule.public_members_must_be_capitalized.symbols = public_symbols
+dotnet_naming_rule.public_members_must_be_capitalized.severity = suggestion
+dotnet_naming_rule.public_members_must_be_capitalized.style = first_word_upper_case_style
+dotnet_naming_style.first_word_upper_case_style.capitalization = first_word_upper

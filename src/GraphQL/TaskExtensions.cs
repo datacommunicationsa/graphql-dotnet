@@ -1,11 +1,12 @@
-using Microsoft.CSharp.RuntimeBinder;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace GraphQL
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+
+    using Microsoft.CSharp.RuntimeBinder;
+
     /// <summary>
     /// Task extensions.
     /// </summary>
@@ -20,9 +21,9 @@ namespace GraphQL
         /// </remarks>
         /// <param name="task">A task that has already been awaited</param>
         /// <returns></returns>
-        internal static object GetResult(this Task task)
+        internal static object GetResult( this Task task )
         {
-            if (task is Task<object> to)
+            if ( task is Task<object> to )
             {
                 // Most performant if available
                 return to.Result;
@@ -32,26 +33,26 @@ namespace GraphQL
                 // Using dynamic is over 10x faster than reflection but works only for public types (or with InternalsVisibleTo attribute) 
                 try
                 {
-                    return ((dynamic)task).Result;
+                    return (( dynamic ) task).Result;
                 }
-                catch (RuntimeBinderException)
+                catch ( RuntimeBinderException )
                 {
                     // it won't be any worse
-                    return task.GetType().GetProperty("Result").GetValue(task, null);
+                    return task.GetType().GetProperty( "Result" ).GetValue( task, null );
                 }
             }
         }
 
-        internal static async Task<IEnumerable<T>> WhereAsync<T>(this IEnumerable<T> items, Func<T, Task<bool>> predicate)
+        internal static async Task<IEnumerable<T>> WhereAsync<T>( this IEnumerable<T> items, Func<T, Task<bool>> predicate )
         {
-            if (items == null)
+            if ( items == null )
             {
                 return Enumerable.Empty<T>();
             }
 
-            var itemTaskList = items.Select(item => new { Item = item, PredTask = predicate.Invoke(item) }).ToList();
-            await Task.WhenAll(itemTaskList.Select(x => x.PredTask)).ConfigureAwait(false);
-            return itemTaskList.Where(x => x.PredTask.Result).Select(x => x.Item);
+            var itemTaskList = items.Select( item => new { Item = item, PredTask = predicate.Invoke( item ) } ).ToList();
+            _ = await Task.WhenAll( itemTaskList.Select( x => x.PredTask ) ).ConfigureAwait( false );
+            return itemTaskList.Where( x => x.PredTask.Result ).Select( x => x.Item );
         }
     }
 }

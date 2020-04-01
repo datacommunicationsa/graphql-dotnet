@@ -1,13 +1,14 @@
-using GraphQL.Types;
-using System;
-using System.Collections;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-
 namespace GraphQL
 {
+    using System;
+    using System.Collections;
+    using System.Collections.Concurrent;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Reflection;
+
+    using GraphQL.Types;
+
     public static class ObjectExtensions
     {
         private static readonly ConcurrentDictionary<Type, ConstructorInfo[]> _types = new ConcurrentDictionary<Type, ConstructorInfo[]>();
@@ -18,9 +19,9 @@ namespace GraphQL
         /// <typeparam name="T">The type to create.</typeparam>
         /// <param name="source">The source of values.</param>
         /// <returns>T.</returns>
-        public static T ToObject<T>(this IDictionary<string, object> source)
+        public static T ToObject<T>( this IDictionary<string, object> source )
             where T : class
-            => (T)ToObject(source, typeof(T));
+            => ( T ) ToObject( source, typeof( T ) );
 
         /// <summary>
         /// Creates a new instance of the indicated type, populating it with the dictionary.
@@ -33,62 +34,59 @@ namespace GraphQL
         /// GraphType for matching dictionary keys with <paramref name="type"/> property names.
         /// GraphType contains information about this matching in Metadata property.
         /// In case of configuring field as Field(x => x.FName).Name("FirstName") source dictionary
-        /// will have 'FirstName' key but its value should be set to 'FName' property of created object.   
+        /// will have 'FirstName' key but its value should be set to 'FName' property of created object.
         /// </param>
-        public static object ToObject(this IDictionary<string, object> source, Type type, IGraphType mappedType = null)
+        public static object ToObject( this IDictionary<string, object> source, Type type, IGraphType mappedType = null )
         {
             // Given Field(x => x.FName).Name("FirstName") and key == "FirstName" returns "FName"  
-            string GetPropertyName(string key, out FieldType field)
+            string GetPropertyName( string key, out FieldType field )
             {
                 var complexType = mappedType.GetNamedType() as IComplexGraphType;
 
                 // type may not contain mapping information
-                field = complexType?.GetField(key);
-                return field?.GetMetadata(ComplexGraphType<object>.ORIGINAL_EXPRESSION_PROPERTY_NAME, key) ?? key;
+                field = complexType?.GetField( key );
+                return field?.GetMetadata( ComplexGraphType<object>.ORIGINAL_EXPRESSION_PROPERTY_NAME, key ) ?? key;
             }
 
             // Returns keys from source that match constructor signature
-            string[] MatchSourceKeys(ParameterInfo[] parameters)
+            string[] MatchSourceKeys( ParameterInfo[] parameters )
             {
                 // parameterless constructors are the most common use case
-                if (parameters.Length == 0)
+                if ( parameters.Length == 0 )
                     return Array.Empty<string>();
 
                 // otherwise we have to iterate over the parameters - worse performance but this is rather rare case
                 List<string> keys = null;
-                if (parameters.All(p => source.Any(keyValue =>
-                {
-                    bool matched = string.Equals(GetPropertyName(keyValue.Key, out var _), p.Name, StringComparison.InvariantCultureIgnoreCase);
-                    if (matched)
-                        (keys ??= new List<string>()).Add(keyValue.Key);
-                    return matched;
-                })))
-                {
-                    return keys.ToArray();
-                }
-
-                return null;
+                return parameters.All( p => source.Any( keyValue =>
+                   {
+                       bool matched = string.Equals( GetPropertyName( keyValue.Key, out var _ ), p.Name, StringComparison.InvariantCultureIgnoreCase );
+                       if ( matched )
+                           (keys ??= new List<string>()).Add( keyValue.Key );
+                       return matched;
+                   } ) )
+                    ? keys.ToArray()
+                    : null;
             }
 
-            if (source == null)
-                throw new ArgumentNullException(nameof(source));
+            if ( source == null )
+                throw new ArgumentNullException( nameof( source ) );
 
             // force sourceType to be IDictionary<string, object>
-            if (ValueConverter.TryConvertTo(source, type, out object result, typeof(IDictionary<string, object>)))
+            if ( ValueConverter.TryConvertTo( source, type, out object result, typeof( IDictionary<string, object> ) ) )
                 return result;
 
             // attempt to use the most specific constructor sorting in decreasing order of parameters number
-            var ctorCandidates = _types.GetOrAdd(type, t => t.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).OrderByDescending(ctor => ctor.GetParameters().Length).ToArray());
+            var ctorCandidates = _types.GetOrAdd( type, t => t.GetConstructors( BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance ).OrderByDescending( ctor => ctor.GetParameters().Length ).ToArray() );
 
             ConstructorInfo targetCtor = null;
             ParameterInfo[] ctorParameters = null;
             string[] matchedKeys = null;
 
-            foreach (var ctor in ctorCandidates)
+            foreach ( var ctor in ctorCandidates )
             {
                 var parameters = ctor.GetParameters();
-                matchedKeys = MatchSourceKeys(parameters);
-                if (matchedKeys != null)
+                matchedKeys = MatchSourceKeys( parameters );
+                if ( matchedKeys != null )
                 {
                     targetCtor = ctor;
                     ctorParameters = parameters;
@@ -96,41 +94,41 @@ namespace GraphQL
                 }
             }
 
-            if (targetCtor == null)
-                throw new ArgumentException($"Type '{type}' does not contain a constructor that could be used for current input arguments.", nameof(type));
+            if ( targetCtor == null )
+                throw new ArgumentException( $"Type '{type}' does not contain a constructor that could be used for current input arguments.", nameof( type ) );
 
             object[] ctorArguments = ctorParameters.Length == 0 ? Array.Empty<object>() : new object[ctorParameters.Length];
 
-            for (int i = 0; i < ctorParameters.Length; ++i)
+            for ( int i = 0; i < ctorParameters.Length; ++i )
             {
-                object arg = GetPropertyValue(source[matchedKeys[i]], ctorParameters[i].ParameterType);
+                object arg = GetPropertyValue( source[matchedKeys[i]], ctorParameters[i].ParameterType );
                 ctorArguments[i] = arg;
             }
 
-            object obj = targetCtor.Invoke(ctorArguments);
+            object obj = targetCtor.Invoke( ctorArguments );
 
-            foreach (var item in source)
+            foreach ( var item in source )
             {
                 // these parameters have already been used in the constructor, no need to set property
-                if (matchedKeys.Length > 0 && matchedKeys.Any(k => k == item.Key))
+                if ( matchedKeys.Length > 0 && matchedKeys.Any( k => k == item.Key ) )
                     continue;
 
-                string propertyName = GetPropertyName(item.Key, out var field);
+                string propertyName = GetPropertyName( item.Key, out var field );
                 PropertyInfo propertyInfo = null;
 
                 try
                 {
-                    propertyInfo = type.GetProperty(propertyName, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+                    propertyInfo = type.GetProperty( propertyName, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance );
                 }
-                catch (AmbiguousMatchException)
+                catch ( AmbiguousMatchException )
                 {
-                    propertyInfo = type.GetProperty(propertyName, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+                    propertyInfo = type.GetProperty( propertyName, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly );
                 }
 
-                if (propertyInfo != null && propertyInfo.CanWrite)
+                if ( propertyInfo?.CanWrite == true )
                 {
-                    object value = GetPropertyValue(item.Value, propertyInfo.PropertyType, field?.ResolvedType);
-                    propertyInfo.SetValue(obj, value, null); //issue: this works even if propertyInfo is ValueType and value is null
+                    object value = GetPropertyValue( item.Value, propertyInfo.PropertyType, field?.ResolvedType );
+                    propertyInfo.SetValue( obj, value, null ); //issue: this works even if propertyInfo is ValueType and value is null
                 }
             }
 
@@ -146,115 +144,115 @@ namespace GraphQL
         /// GraphType for matching dictionary keys with <paramref name="type"/> property names.
         /// GraphType contains information about this matching in Metadata property.
         /// In case of configuring field as Field(x => x.FName).Name("FirstName") source dictionary
-        /// will have 'FirstName' key but its value should be set to 'FName' property of created object.   
+        /// will have 'FirstName' key but its value should be set to 'FName' property of created object.
         /// </param>
         /// <remarks>There is special handling for strings, IEnumerable&lt;T&gt;, Nullable&lt;T&gt;, and Enum.</remarks>
-        public static object GetPropertyValue(this object propertyValue, Type fieldType, IGraphType mappedType = null)
+        public static object GetPropertyValue( this object propertyValue, Type fieldType, IGraphType mappedType = null )
         {
             // Short-circuit conversion if the property value already of the right type
-            if (propertyValue == null || fieldType == typeof(object) || fieldType.IsInstanceOfType(propertyValue))
+            if ( propertyValue == null || fieldType == typeof( object ) || fieldType.IsInstanceOfType( propertyValue ) )
             {
                 return propertyValue;
             }
 
-            if (ValueConverter.TryConvertTo(propertyValue, fieldType, out object result))
+            if ( ValueConverter.TryConvertTo( propertyValue, fieldType, out object result ) )
                 return result;
 
             var enumerableInterface = fieldType.Name == "IEnumerable`1"
               ? fieldType
-              : fieldType.GetInterface("IEnumerable`1");
+              : fieldType.GetInterface( "IEnumerable`1" );
 
-            if (fieldType != typeof(string) && enumerableInterface != null)
+            if ( fieldType != typeof( string ) && enumerableInterface != null )
             {
                 IList newCollection;
                 var elementType = enumerableInterface.GetGenericArguments()[0];
-                var underlyingType = Nullable.GetUnderlyingType(elementType) ?? elementType;
-                var fieldTypeImplementsIList = fieldType.GetInterface("IList") != null;
+                var underlyingType = Nullable.GetUnderlyingType( elementType ) ?? elementType;
+                bool fieldTypeImplementsIList = fieldType.GetInterface( "IList" ) != null;
 
                 var propertyValueAsIList = propertyValue as IList;
 
                 // Custom container
-                if (fieldTypeImplementsIList && !fieldType.IsArray)
+                if ( fieldTypeImplementsIList && !fieldType.IsArray )
                 {
-                    newCollection = (IList)Activator.CreateInstance(fieldType);
+                    newCollection = ( IList ) Activator.CreateInstance( fieldType );
                 }
                 // Array of known size is created immediately
-                else if (fieldType.IsArray && propertyValueAsIList != null)
+                else if ( fieldType.IsArray && propertyValueAsIList != null )
                 {
-                    newCollection = Array.CreateInstance(elementType, propertyValueAsIList.Count);
+                    newCollection = Array.CreateInstance( elementType, propertyValueAsIList.Count );
                 }
                 // List<T>
                 else
                 {
-                    var genericListType = typeof(List<>).MakeGenericType(elementType);
-                    newCollection = (IList)Activator.CreateInstance(genericListType);
+                    var genericListType = typeof( List<> ).MakeGenericType( elementType );
+                    newCollection = ( IList ) Activator.CreateInstance( genericListType );
                 }
 
-                if (!(propertyValue is IEnumerable valueList))
+                if ( !(propertyValue is IEnumerable valueList) )
                     return newCollection;
 
                 // Array of known size is populated in-place
-                if (fieldType.IsArray && propertyValueAsIList != null)
+                if ( fieldType.IsArray && propertyValueAsIList != null )
                 {
-                    for (int i = 0; i < propertyValueAsIList.Count; ++i)
+                    for ( int i = 0; i < propertyValueAsIList.Count; ++i )
                     {
-                        var listItem = propertyValueAsIList[i];
-                        newCollection[i] = listItem == null ? null : GetPropertyValue(listItem, underlyingType, mappedType);
+                        object listItem = propertyValueAsIList[i];
+                        newCollection[i] = listItem == null ? null : GetPropertyValue( listItem, underlyingType, mappedType );
                     }
                 }
                 // Array of unknown size is created only after populating list
                 else
                 {
-                    foreach (var listItem in valueList)
+                    foreach ( object listItem in valueList )
                     {
-                        newCollection.Add(listItem == null ? null : GetPropertyValue(listItem, underlyingType, mappedType));
+                        _ = newCollection.Add( listItem == null ? null : GetPropertyValue( listItem, underlyingType, mappedType ) );
                     }
-                   
-                    if (fieldType.IsArray)
-                        newCollection = ((dynamic)newCollection).ToArray();
+
+                    if ( fieldType.IsArray )
+                        newCollection = (( dynamic ) newCollection).ToArray();
                 }
 
                 return newCollection;
             }
 
-            var value = propertyValue;
+            object value = propertyValue;
 
-            var nullableFieldType = Nullable.GetUnderlyingType(fieldType);
+            var nullableFieldType = Nullable.GetUnderlyingType( fieldType );
 
             // if this is a nullable type and the value is null, return null
-            if (nullableFieldType != null && value == null)
+            if ( nullableFieldType != null && value == null )
             {
                 return null;
             }
 
-            if (nullableFieldType != null)
+            if ( nullableFieldType != null )
             {
                 fieldType = nullableFieldType;
             }
 
-            if (propertyValue is IDictionary<string, object> objects)
+            if ( propertyValue is IDictionary<string, object> objects )
             {
-                return ToObject(objects, fieldType, mappedType);
+                return ToObject( objects, fieldType, mappedType );
             }
 
-            if (fieldType.IsEnum)
+            if ( fieldType.IsEnum )
             {
-                if (value == null)
+                if ( value == null )
                 {
-                    var enumNames = Enum.GetNames(fieldType);
+                    string[] enumNames = Enum.GetNames( fieldType );
                     value = enumNames[0];
                 }
 
-                if (!IsDefinedEnumValue(fieldType, value))
+                if ( !IsDefinedEnumValue( fieldType, value ) )
                 {
-                    throw new ExecutionError($"Unknown value '{value}' for enum '{fieldType.Name}'.");
+                    throw new ExecutionError( $"Unknown value '{value}' for enum '{fieldType.Name}'." );
                 }
 
                 string str = value.ToString();
-                value = Enum.Parse(fieldType, str, true);
+                value = Enum.Parse( fieldType, str, true );
             }
 
-            return ValueConverter.ConvertTo(value, fieldType);
+            return ValueConverter.ConvertTo( value, fieldType );
         }
 
         /// <summary>
@@ -263,13 +261,11 @@ namespace GraphQL
         /// <param name="obj">The object to be read.</param>
         /// <param name="propertyName">Name of the property.</param>
         /// <returns>System.Object.</returns>
-        public static object GetPropertyValue(this object obj, string propertyName)
+        public static object GetPropertyValue( this object obj, string propertyName )
         {
-            var val = obj.GetType()
-                .GetProperty(propertyName, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance)
-                ?.GetValue(obj, null);
-
-            return val;
+            return obj.GetType()
+                .GetProperty( propertyName, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance )
+                ?.GetValue( obj, null );
         }
 
         /// <summary>
@@ -279,38 +275,30 @@ namespace GraphQL
         /// <param name="name">The name of the desired interface. This is case sensitive.</param>
         /// <returns>The interface, or <c>null</c> if no matches were found.</returns>
         /// <remarks>If more than one interface matches, the returned interface is non-deterministic.</remarks>
-        public static Type GetInterface(this Type type, string name)
-        {
-            return type.GetInterfaces().FirstOrDefault(x => x.Name == name);
-        }
+        public static Type GetInterface( this Type type, string name ) => Array.Find( type.GetInterfaces(), x => x.Name == name );
 
-        public static T GetPropertyValue<T>(this object value)
-        {
-            return (T)GetPropertyValue(value, typeof(T));
-        }
+        public static T GetPropertyValue<T>( this object value ) => ( T ) GetPropertyValue( value, typeof( T ) );
 
         /// <summary>
         /// Returns true is the value is null, value.ToString equals an empty string, or the value can be converted into a named enum value.
         /// </summary>
         /// <param name="type">An enum type.</param>
         /// <param name="value">The value being tested.</param>
-        public static bool IsDefinedEnumValue(Type type, object value)
+        public static bool IsDefinedEnumValue( this Type type, object value )
         {
-            var names = Enum.GetNames(type);
-            if (names.Contains(value?.ToString() ?? "", StringComparer.OrdinalIgnoreCase))
+            string[] names = Enum.GetNames( type );
+            if ( names.Contains( value?.ToString() ?? "", StringComparer.OrdinalIgnoreCase ) )
             {
                 return true;
             }
 
-            var underlyingType = Enum.GetUnderlyingType(type);
-            var converted = Convert.ChangeType(value, underlyingType);
+            var underlyingType = Enum.GetUnderlyingType( type );
+            object converted = Convert.ChangeType( value, underlyingType );
 
-            var values = Enum.GetValues(type);
-
-            foreach (var val in values)
+            foreach ( object val in Enum.GetValues( type ) )
             {
-                var convertedVal = Convert.ChangeType(val, underlyingType);
-                if (convertedVal.Equals(converted))
+                object convertedVal = Convert.ChangeType( val, underlyingType );
+                if ( convertedVal.Equals( converted ) )
                 {
                     return true;
                 }
@@ -326,15 +314,15 @@ namespace GraphQL
         /// <param name="flags">The binding flags used to control which properties are read.</param>
         public static IDictionary<string, object> AsDictionary(
             this object source,
-            BindingFlags flags = BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance)
+            BindingFlags flags = BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance )
         {
             return source
                 .GetType()
-                .GetProperties(flags)
+                .GetProperties( flags )
                 .ToDictionary
                 (
                     propInfo => propInfo.Name,
-                    propInfo => propInfo.GetValue(source, null)
+                    propInfo => propInfo.GetValue( source, null )
                 );
         }
     }

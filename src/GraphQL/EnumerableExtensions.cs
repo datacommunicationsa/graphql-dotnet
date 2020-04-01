@@ -1,8 +1,8 @@
-using System;
-using System.Collections.Generic;
-
 namespace GraphQL
 {
+    using System;
+    using System.Collections.Generic;
+
     public static class EnumerableExtensions
     {
         /// <summary>
@@ -10,11 +10,11 @@ namespace GraphQL
         /// </summary>
         /// <param name="action">The action to be performed.</param>
         /// <remarks>If an exception occurs, the action will not be performed on the remaining items.</remarks>
-        public static void Apply<T>(this IEnumerable<T> items, Action<T> action)
+        public static void Apply<T>( this IEnumerable<T> items, Action<T> action )
         {
-            foreach (var item in items)
+            foreach ( var item in items )
             {
-                action(item);
+                action( item );
             }
         }
 
@@ -23,11 +23,11 @@ namespace GraphQL
         /// </summary>
         /// <param name="action">The action to be performed.</param>
         /// <remarks>If an exception occurs, the action will not be performed on the remaining items.</remarks>
-        public static void Apply<T>(this List<T> items, Action<T> action)
+        public static void Apply<T>( this List<T> items, Action<T> action )
         {
-            foreach (var item in items)
+            foreach ( var item in items )
             {
-                action(item);
+                action( item );
             }
         }
 
