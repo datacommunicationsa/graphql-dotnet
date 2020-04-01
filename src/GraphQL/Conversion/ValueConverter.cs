@@ -70,6 +70,13 @@ namespace GraphQL
             Register<int, decimal>(value => Convert.ToDecimal(value, NumberFormatInfo.InvariantInfo));
             Register<int, TimeSpan>(value => TimeSpan.FromSeconds(value));
 
+            // TODO: kapiris additions - need PR!
+            Register(typeof(int), typeof(string), value =>
+            {
+                string stringValue = value.ToString();
+                return Convert.ToString(stringValue, NumberFormatInfo.InvariantInfo);
+            });
+
             Register<long, sbyte>(value => Convert.ToSByte(value, NumberFormatInfo.InvariantInfo));
             Register<long, byte>(value => Convert.ToByte(value, NumberFormatInfo.InvariantInfo));
             Register<long, short>(value => Convert.ToInt16(value, NumberFormatInfo.InvariantInfo));
@@ -81,6 +88,13 @@ namespace GraphQL
             Register<long, double>(value => value);
             Register<long, decimal>(value => value);
             Register<long, TimeSpan>(value => TimeSpan.FromSeconds(value));
+
+            // TODO: kapiris additions - need PR!
+            Register(typeof(long), typeof(string), value =>
+            {
+                string stringValue = value.ToString();
+                return Convert.ToString(stringValue, NumberFormatInfo.InvariantInfo);
+            });
 
             Register<BigInteger, sbyte>(value => (sbyte)value);
             Register<BigInteger, byte>(value => (byte)value);
